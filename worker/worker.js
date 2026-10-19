@@ -9,6 +9,8 @@ const ROUTES = [
   [/^\/bootstrap$/, () => '/api/bootstrap-static', 3600],
   [/^\/live\/(\d{1,2})$/, m => `/api/event/${m[1]}/live`, 60],
   [/^\/picks\/(\d{1,7})\/(\d{1,2})$/, m => (ENTRIES.has(m[1]) ? `/api/entry/${m[1]}/event/${m[2]}` : null), 60],
+  [/^\/choices$/, () => '/api/draft/64420/choices', 86400],          // the draft itself never changes
+  [/^\/trades$/, () => '/api/draft/league/64420/trades', 600],
 ];
 
 export default {

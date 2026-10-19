@@ -94,7 +94,8 @@ const POS = { 1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD' };
 const base = () => WORKER_URL.replace(/\/$/, '');
 function players() {
   return bootP ||= getJSON(base() + '/bootstrap', 20000).then(b => {
-    const m = {}; b.elements.forEach(e => { m[e.id] = { name: e.web_name, pos: POS[e.element_type] || '', code: e.code }; }); return m;
+    const m = {}; b.elements.forEach(e => { m[e.id] = { name: e.web_name, pos: POS[e.element_type] || '', code: e.code,
+      type: e.element_type, total: e.total_points, added: e.added }; }); return m;
   });
 }
 function split(picksResp) {               // -> who actually played (after auto-subs) and who sat
@@ -152,6 +153,76 @@ function renderExtras({ all, season, teams }) {
   renderH2H(done.length ? done : played, teams);
   renderAlt(played, teams, season);
   weekPicker(played, teams);
+  if (WORKER_URL) { renderMisses(teams); renderTrades(played, teams); }
+}
+
+// every draft pick vs the best player at the same position still undrafted at that moment, by season points
+async function renderMisses(teams) {
+  const el = document.getElementById('misses');
+  try {
+    const [pl, draft] = await Promise.all([players(), cached(base() + '/choices', 20000)]);
+    const byEntry = Object.fromEntries(teams.map(t => [t.entry, t]));
+    const picks = [...draft.choices].sort((a, b) => a.index - b.index);
+    const taken = new Set(), lost = Object.fromEntries(teams.map(t => [t.entry, 0]));
+    const rows = picks.map(c => {
+      const me = pl[c.element];
+      let alt = null;
+      for (const id in pl) {
+        const p = pl[id];
+        if (p.type !== me.type || taken.has(+id) || (p.added && p.added > c.choice_time)) continue;
+        if (!alt || p.total > alt.total) alt = p;
+      }
+      taken.add(c.element);
+      const miss = alt && alt !== me ? alt.total - me.total : 0;
+      lost[c.entry] += miss;
+      return { c, me, alt, miss };
+    });
+    const worst = [...rows].sort((a, b) => b.miss - a.miss).slice(0, 5).map(r => r.c.index);
+    const sorter = document.querySelector('#missMore .sorter');
+    document.getElementById('missTiles').innerHTML = teams.map(t => [t, lost[t.entry]]).sort((a, b) => b[1] - a[1])
+      .map(([t, v]) => tile('points left on the board', v, esc(t.team))).join('');
+    const draw = mode => {
+      sorter.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === mode));
+      const list = mode === 'miss' ? [...rows].sort((a, b) => b.miss - a.miss || a.c.index - b.c.index) : rows;
+      el.innerHTML = '<tr><th>Pick</th><th>Team</th><th>Took</th><th>Could have had</th><th>Missed</th></tr>' + list.map((r, k) =>
+      `<tr class="in" style="--i:${Math.min(k, 10)}"><td>${r.c.round}.${r.c.pick}</td><td class="team">${esc(byEntry[r.c.entry] ? byEntry[r.c.entry].team : r.c.entry_name)}</td>` +
+      `<td>${esc(r.me.name)} <small>${r.me.total}</small></td>` +
+      (r.miss ? `<td>${esc(r.alt.name)} <small>${r.alt.total}</small></td><td class="${worst.includes(r.c.index) ? 'big' : ''}">${r.miss}</td>`
+              : `<td class="nailed" colspan="2">best available</td>`) + '</tr>').join('');
+    };
+    sorter.onclick = e => { const b = e.target.closest('button'); if (b) { draw(b.dataset.sort); win.scrollTop = 0; } };
+    // the list scrolls inside a short window; fade its bottom edge until the end is reached
+    const win = el.closest('.window');
+    win.onscroll = () => win.classList.toggle('at-end', win.scrollTop + win.clientHeight >= win.scrollHeight - 2);
+    draw('order');
+  } catch (err) { el.innerHTML = '<tr><td class="dmsg">Could not load the draft right now.</td></tr>'; }
+}
+
+// trades scored by what each side's incoming players have scored from the trade's gameweek on
+async function renderTrades(gws, teams) {
+  const el = document.getElementById('trades');
+  try {
+    const [pl, { trades }] = await Promise.all([players(), cached(base() + '/trades', 20000)]);
+    const done = trades.filter(t => t.state === 'p');
+    if (!done.length) { el.innerHTML = '<tr><td class="dmsg">No trades yet.</td></tr>'; return; }
+    const first = Math.min(...done.map(t => t.event)), evs = gws.map(g => g.ev).filter(ev => ev >= first);
+    const lives = Object.fromEntries(await Promise.all(evs.map(ev => cached(`${base()}/live/${ev}`, 20000).then(l => [ev, l]))));
+    const since = (id, from) => evs.filter(ev => ev >= from).reduce((a, ev) => a + livePts(lives[ev])(id), 0);
+    const name = e => esc((teams.find(t => t.entry === e) || { team: e }).team);
+    const side = (entry, ids, from) => ({ entry, ids, pts: ids.reduce((a, id) => a + since(id, from), 0) });
+    const ranked = done.map(t => {
+      const a = side(t.offered_entry, t.tradeitem_set.map(i => i.element_in), t.event);   // what the offering team got
+      const b = side(t.received_entry, t.tradeitem_set.map(i => i.element_out), t.event);
+      const [win, lose] = a.pts >= b.pts ? [a, b] : [b, a];
+      return { ev: t.event, win, lose, margin: win.pts - lose.pts };
+    }).sort((x, y) => y.margin - x.margin);
+    const got = s => s.ids.map(id => esc((pl[id] || { name: '#' + id }).name)).join(', ');
+    el.innerHTML = '<tr><th>#</th><th>GW</th><th>Won</th><th>Lost</th><th>Margin</th></tr>' + ranked.map((r, k) =>
+      `<tr><td>${k + 1}</td><td>${r.ev}</td>` +
+      `<td><b>${name(r.win.entry)}</b><small>got ${got(r.win)} · ${r.win.pts} pts</small></td>` +
+      `<td><b>${name(r.lose.entry)}</b><small>got ${got(r.lose)} · ${r.lose.pts} pts</small></td>` +
+      `<td class="pts">${r.margin ? '+' + r.margin : 'even'}</td></tr>`).join('');
+  } catch (err) { el.innerHTML = '<tr><td class="dmsg">Could not load trades right now.</td></tr>'; }
 }
 
 // gameweek dropdown in the "up close" heading
@@ -355,17 +426,43 @@ async function renderWeek(g, teams) {
   }
 }
 
-// "Fun Stuff" toggle: panes render on first open, so the chart can measure its width
+// arrow toggles: the arrow points up while closed and turns down as the panel fades in
+function revealToggle(btn, panel, onOpen) {
+  btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') !== 'true';
+    btn.setAttribute('aria-expanded', open);
+    if (!open) { panel.classList.remove('shown'); panel.hidden = true; return; }
+    panel.hidden = false;
+    if (onOpen) onOpen();
+    requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('shown')));
+  });
+}
+
+// like revealToggle, but the panel's height animates open and shut, so whatever sits below it
+// (here, the button itself) slides down and back up instead of jumping
+function slideToggle(btn, panel, ms = 500) {   // ms = the .slide height transition in style.css
+  let t;
+  btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') !== 'true';
+    btn.setAttribute('aria-expanded', open);
+    clearTimeout(t);
+    const from = panel.hidden ? 0 : panel.getBoundingClientRect().height;
+    panel.hidden = false;
+    panel.style.height = '';
+    const to = open ? panel.getBoundingClientRect().height : 0;
+    panel.style.height = from + 'px';
+    panel.getBoundingClientRect();              // commit the start height before transitioning
+    panel.classList.toggle('shown', open);
+    panel.style.height = to + 'px';
+    t = setTimeout(() => { if (open) panel.style.height = ''; else panel.hidden = true; }, ms);
+  });
+}
+
+// "Fun Stuff": panes render on first open, so the chart can measure its width
 let extrasDone = false;
-const funBtn = document.getElementById('funBtn'), fun = document.getElementById('fun');
-funBtn.addEventListener('click', () => {
-  const open = funBtn.getAttribute('aria-expanded') !== 'true';
-  funBtn.setAttribute('aria-expanded', open);
-  if (!open) { fun.classList.remove('shown'); fun.hidden = true; return; }
-  fun.hidden = false;
-  if (!extrasDone && state) { renderExtras(state); extrasDone = true; }
-  requestAnimationFrame(() => requestAnimationFrame(() => fun.classList.add('shown')));
-});
+const fun = document.getElementById('fun');
+revealToggle(document.getElementById('funBtn'), fun, () => { if (!extrasDone && state) { renderExtras(state); extrasDone = true; } });
+slideToggle(document.getElementById('missBtn'), document.getElementById('missMore'));
 
 (async () => {
   const el = document.getElementById('status');

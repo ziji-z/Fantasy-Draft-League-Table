@@ -121,11 +121,17 @@ tr.open .chev{transform:rotate(90deg)}
 /* ---- fun stuff toggle ---- */
 .fun-btn{display:flex;align-items:center;gap:10px;margin:clamp(40px,8vh,96px) auto 0;background:none;border:0;padding:8px 4px;cursor:pointer;
   font:400 clamp(20px,2vw,32px)/1.2 "Josefin Sans",sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent}
-.fun-btn svg{fill:none;stroke:var(--ink);stroke-width:1.5;overflow:visible;transition:transform .35s ease}
-.fun-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
-.fun-btn:focus-visible{outline:1px solid var(--ink);outline-offset:4px}
-#fun{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
-#fun.shown{opacity:1;transform:none}
+.fun-btn svg,.more-btn svg{fill:none;stroke:var(--ink);stroke-width:1.5;overflow:visible;transition:transform .35s ease}
+.fun-btn[aria-expanded="true"] svg,.more-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.fun-btn:focus-visible,.more-btn:focus-visible{outline:1px solid var(--ink);outline-offset:4px}
+#fun,.reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+#fun.shown,.reveal.shown{opacity:1;transform:none}
+.more-btn{display:flex;align-items:center;gap:8px;margin:3vh auto 0;background:none;border:0;padding:8px 4px;cursor:pointer;
+  font:400 17px/1.2 "Josefin Sans",sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.sorter{font-size:14px;font-style:italic;font-weight:300;margin:0 0 1.5vh}
+.sorter button{font:inherit;font-style:normal;color:var(--ink);background:none;border:0;padding:4px 2px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sorter button[aria-pressed="true"]{font-weight:700}
+.sorter button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
 
 /* ---- gameweek dropdown ---- */
 .gwpick{position:relative;display:inline-block}
@@ -167,3 +173,33 @@ tr.open .chev{transform:rotate(90deg)}
 /* classic-FPL prices in the lineups */
 .squad .worth{font-size:12px;font-style:italic;font-weight:300;margin:-2px 0 4px}
 .squad li .c{font-size:11px;font-weight:300;color:var(--ink-dim);padding-top:2px;font-variant-numeric:tabular-nums}
+
+/* draft misses + trades */
+#missTiles{margin-bottom:3vh}
+#misses{min-width:520px}
+#misses td{font-weight:300}
+#misses td.team,#misses th:nth-child(2){text-align:left}
+#misses td.team{font-weight:500}
+#misses small,#trades small{font-size:12px;color:var(--ink-dim)}
+#misses td.big{font-weight:700}
+#misses td.nailed{font-style:italic;color:var(--ink-dim)}
+#trades{min-width:520px}
+#trades td:nth-child(3),#trades td:nth-child(4),#trades th:nth-child(3),#trades th:nth-child(4){text-align:left;white-space:normal}
+#trades td b{display:block;font-weight:500}
+#trades small{display:block;line-height:1.4;margin-top:2px}
+#trades td.pts{font-weight:700;font-size:19px}
+
+/* draft list: a short scrolling window with a pinned header and a fade hinting there's more below */
+.window{max-height:min(420px,55vh);overflow-y:auto;overscroll-behavior:contain;
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent)}
+.window.at-end{-webkit-mask-image:none;mask-image:none}
+.window th{position:sticky;top:0;z-index:1;background:var(--paper);box-shadow:inset 0 -1px 0 var(--ink)}
+/* rows ease in one after another when the list opens or re-sorts (rows past the 10th share the last delay) */
+#misses tr.in{animation:rowIn .5s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i) * 40ms)}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){#misses tr.in{animation:none}}
+
+/* draft list open/close: height slides, contents fade (500ms = slideToggle's ms in app.js) */
+.slide{overflow:hidden;opacity:0;transition:height .5s cubic-bezier(.4,0,.2,1),opacity .4s ease}
+.slide.shown{opacity:1}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
