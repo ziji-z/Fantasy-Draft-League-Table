@@ -293,33 +293,43 @@ function drawChart(gws, teams) {
     const lo = Math.floor(Math.min(...vals) / 20) * 20, hi = Math.ceil(Math.max(...vals) / 20) * 20;
     const x = ev => m.l + (evs.length < 2 ? 0.5 : (ev - evs[0]) / (evs[evs.length - 1] - evs[0])) * (W - m.l - m.r);
     const y = v => m.t + (1 - (v - lo) / (hi - lo || 1)) * (H - m.t - m.b);
-    let s = '';
+    let s = '', dat = '';                       // s: grid/axes/labels that stay sharp; dat: the weeks, which blur on hover
     for (let v = lo; v <= hi; v += 20) s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
-    evs.forEach(ev => { s += `<text x="${x(ev)}" y="${H - 6}" text-anchor="middle">${ev}</text>`; });
+    evs.forEach(ev => { dat += `<text x="${x(ev)}" y="${H - 6}" text-anchor="middle">${ev}</text>`; });
     if (evs[0] < FIRST_GW && evs.includes(FIRST_GW))
       s += `<line class="mark" x1="${x(FIRST_GW)}" x2="${x(FIRST_GW)}" y1="${m.t - 8}" y2="${H - m.b}"/><text class="it" x="${x(FIRST_GW) - 6}" y="${m.t - 12}" text-anchor="end">zev scoring starts</text>`;
     teams.forEach((t, i) => {
-      s += `<path d="${gws.map((g, k) => `${k ? 'L' : 'M'}${x(g.ev)},${y(g.scores[i])}`).join('')}" stroke-dasharray="${DASH[i]}"/>`;
-      gws.forEach(g => { s += `<circle class="${g.status === 'live' ? 'open' : ''}" cx="${x(g.ev)}" cy="${y(g.scores[i])}" r="3"/>`; });
+      dat += `<path d="${gws.map((g, k) => `${k ? 'L' : 'M'}${x(g.ev)},${y(g.scores[i])}`).join('')}" stroke-dasharray="${DASH[i]}"/>`;
+      gws.forEach(g => { dat += `<circle class="${g.status === 'live' ? 'open' : ''}" cx="${x(g.ev)}" cy="${y(g.scores[i])}" r="3"/>`; });
     });
     const last = gws[gws.length - 1];
     const ends = teams.map((t, i) => ({ i, y: y(last.scores[i]) })).sort((a, b) => a.y - b.y);
     for (let k = 1; k < ends.length; k++) ends[k].y = Math.max(ends[k].y, ends[k - 1].y + 14);
     const max = narrow ? 12 : 16, short = n => (n.length > max ? n.slice(0, max - 1) + '…' : n);
     ends.forEach(e => { s += `<text class="lbl" x="${x(last.ev) + 8}" y="${e.y + 4}">${esc(short(teams[e.i].team))}</text>`; });
-    box.innerHTML = `<svg width="${W}" height="${H}">${s}<line class="xh" y1="${m.t}" y2="${H - m.b}" visibility="hidden"/></svg><div class="tip" hidden></div>`;
-    const svg = box.firstElementChild, xh = svg.querySelector('.xh'), tip = box.querySelector('.tip');
+    // hover focus: the weeks are drawn twice, once in a group that blurs and once sharp, masked to a band
+    // around the hovered week that fades out at both sides. (A <use> copy would skip the page CSS and
+    // render the paths filled black.)
+    const step = evs.length > 1 ? (W - m.l - m.r) / (evs[evs.length - 1] - evs[0]) : W;
+    box.innerHTML = `<svg width="${W}" height="${H}"><defs><linearGradient id="bandFade"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".38" stop-color="#fff"/>` +
+      `<stop offset=".62" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>` +
+      `<mask id="hoverBand" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect class="band" fill="url(#bandFade)" y="0" height="${H}" width="0"/></mask></defs>` +
+      `${s}<g class="blurwrap">${dat}</g><g class="sharp" mask="url(#hoverBand)">${dat}</g>` +
+      `<line class="xh" y1="${m.t}" y2="${H - m.b}" visibility="hidden"/></svg><div class="tip" hidden></div>`;
+    const svg = box.firstElementChild, xh = svg.querySelector('.xh'), tip = box.querySelector('.tip'), band = svg.querySelector('.band');
     svg.onpointermove = e => {
       const px = e.clientX - svg.getBoundingClientRect().left;
       const g = gws.reduce((a, b) => (Math.abs(x(b.ev) - px) < Math.abs(x(a.ev) - px) ? b : a)), gx = x(g.ev);
       xh.setAttribute('x1', gx); xh.setAttribute('x2', gx); xh.setAttribute('visibility', 'visible');
+      band.setAttribute('x', gx - step * 0.9); band.setAttribute('width', step * 1.8);   // solid only near the week
+      svg.classList.add('focus');
       tip.innerHTML = `<b>GW ${g.ev}${g.status === 'live' ? ' · live' : ''}</b>` + g.scores.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v)
         .map(r => `<div><span>${esc(teams[r.i].team)}</span><span>${r.v}</span></div>`).join('');
       tip.hidden = false;
       tip.style.left = (gx > W / 2 ? gx - tip.offsetWidth - 12 : gx + 12) + 'px';
       tip.style.top = m.t + 'px';
     };
-    svg.onpointerleave = () => { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); };
+    svg.onpointerleave = () => { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); svg.classList.remove('focus'); band.setAttribute('width', 0); };
   };
   draw();
   let lastW = box.clientWidth;

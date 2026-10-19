@@ -203,3 +203,7 @@ tr.open .chev{transform:rotate(90deg)}
 .slide{overflow:hidden;opacity:0;transition:height .5s cubic-bezier(.4,0,.2,1),opacity .4s ease}
 .slide.shown{opacity:1}
 @media (prefers-reduced-motion:reduce){.slide{transition:none}}
+/* chart hover: every other week softens; the hovered week stays sharp via a clipped copy */
+.chart .blurwrap{transition:filter .3s ease,opacity .3s ease}
+.chart svg.focus .blurwrap{filter:blur(3px);opacity:.5}
+.chart .sharp{pointer-events:none}
