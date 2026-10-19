@@ -37,6 +37,9 @@ tr:last-child td{border-bottom:0}
 .note{font-size:13px;font-style:italic;line-height:1.6;margin-top:2vh}
 .err{font-style:italic}
 
+#gws{table-layout:fixed;min-width:440px} /* equal team columns; scrolls sideways below 440px */
+#gws th{white-space:normal}
+#gws th:first-child{width:96px;text-align:left}
 #gws tr.gw{cursor:pointer;-webkit-tap-highlight-color:transparent}
 #gws tr.gw td:first-child{text-align:left}
 .chev{display:inline-block;width:12px;font-weight:300;transition:transform .2s ease}
@@ -58,6 +61,7 @@ tr.open .chev{transform:rotate(90deg)}
 @media (max-width:600px){
   th,td{padding:10px 6px}
   th{font-size:12px}
+  #gws th:first-child{width:72px}
   #season td.mgr,#season th:nth-child(3){display:none} /* manager column hidden on phones */
   #season td.pts{font-size:17px}
   .cell b{font-size:15px}
