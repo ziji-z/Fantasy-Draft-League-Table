@@ -80,7 +80,7 @@ function render({ gws, season, teams }) {
     '<tr><th>GW</th>' + teams.map(t => `<th>${esc(t.team)}</th>`).join('') + '</tr>' +
     (started.map(g => {
       const max = Math.max(...g.scores);
-      return `<tr class="gw ${g.status === 'live' ? 'is-live' : ''}" data-ev="${g.ev}"><td><span class="chev">▶</span><b>${g.ev}</b>${g.status === 'live' ? ' <span class="badge live">live</span>' : ''}</td>` +
+      return `<tr class="gw ${g.status === 'live' ? 'is-live' : ''}" data-ev="${g.ev}"><td><span class="chev">›</span><b>${g.ev}</b>${g.status === 'live' ? ' <span class="badge live">live</span>' : ''}</td>` +
         g.scores.map((s, i) => `<td><div class="cell ${s === max ? 'top' : ''}"><b>${fmt(g.lp[i])}</b><small>${s} FPL</small></div></td>`).join('') + '</tr>';
     }).join('') || `<tr><td colspan="5">No gameweeks started yet.</td></tr>`);
 }
@@ -103,11 +103,9 @@ function squadHTML(team, picksResp, live, pl, official) {
   const bench = all.filter(p => p.position > 11 && !inn.has(p.element));
   const li = (p, cls) => { const x = pl[p.element] || { name: '#' + p.element, pos: '' };
     return `<li class="${cls}"><span class="p">${x.pos}</span><span class="n">${esc(x.name)}</span><b>${pts(p.element)}</b></li>`; };
-  const sum = starters.reduce((s, p) => s + pts(p.element), 0);
   return `<div class="squad"><h3><span>${esc(team.team)}</span><span>${official}</span></h3><ul>` +
     starters.map(p => li(p, inn.has(p.element) ? 'subin' : '')).join('') +
-    `</ul><div class="sep">Bench</div><ul>` + bench.map(p => li(p, 'bench')).join('') + `</ul>` +
-    (sum !== official ? `<div class="dmsg">Lineup sums to ${sum}</div>` : '') + `</div>`;
+    `</ul><div class="sep">Bench</div><ul>` + bench.map(p => li(p, 'bench')).join('') + `</ul></div>`;
 }
 document.getElementById('gws').addEventListener('click', async e => {
   const row = e.target.closest('tr.gw'); if (!row || !state) return;

@@ -1,52 +1,68 @@
 :root{
-  --bg:#f7f6f8; --card:#fff; --ink:#1d1a22; --muted:#6b6672; --line:#e3e0e8;
-  --brand:#37003c; --brand-ink:#fff; --win:#0a7d4b; --win-bg:#e3f5ec; --live:#b36b00; --live-bg:#fff2d9;
+  color-scheme:light;
+  --paper:#f0e5d3; --ink:#000000; --ink-dim:rgba(0,0,0,.38); --hint:#4b4b4b;
+  --rule:rgba(0,0,0,.18); /* hairline between rows */
 }
-@media (prefers-color-scheme:dark){
-  :root{--bg:#141217; --card:#1d1a22; --ink:#f1eef5; --muted:#a49eb0; --line:#322e3a;
-  --brand:#5a1a60; --win:#4cd28f; --win-bg:#12301f; --live:#f2b24d; --live-bg:#33270f;}
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:860px;margin:0 auto;padding:28px 16px 48px}
-h1{margin:0;font-size:26px}
-h1 span{font-weight:500;color:var(--muted);font-size:18px;margin-left:6px}
-h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 8px}
-.sub{margin:6px 0;color:var(--muted)}
-.status{font-size:13px;color:var(--muted);margin:4px 0 0}
-.status b{color:var(--ink)}
-.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th,td{padding:10px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
-tr:last-child td{border-bottom:0}
-th{background:var(--brand);color:var(--brand-ink);font-size:12px;font-weight:600}
-#season td:nth-child(2),#season th:nth-child(2){text-align:left}
-#season td.pts{font-weight:700;font-size:17px}
-#season td.team{font-weight:600}
-#season td.mgr{color:var(--muted);font-size:13px}
-.cell{display:flex;flex-direction:column;align-items:center;line-height:1.2}
-.cell small{font-size:11px;color:var(--muted)}
-.cell.top b{color:var(--win)}
-.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:600;background:var(--win-bg);color:var(--win)}
-.live{background:var(--live-bg);color:var(--live)}
-tr.is-live td{background:color-mix(in srgb,var(--live-bg) 40%,transparent)}
-.note{font-size:12px;color:var(--muted);margin:8px 2px 0}
-.err{color:#c0392b}
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:hidden}
+body{background:var(--paper);color:var(--ink);font:400 16px/1.5 "Josefin Sans",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:900px;margin:0 auto;padding:clamp(32px,8vh,96px) 16px 13vh}
 
-#gws tr.gw{cursor:pointer}
-#gws tr.gw:hover td{background:color-mix(in srgb,var(--brand) 10%,transparent)}
-.chev{display:inline-block;color:var(--muted);font-size:11px;margin-right:4px;transition:transform .15s}
+header{text-align:center;display:flex;flex-direction:column;align-items:center;gap:2vh}
+h1{font-size:clamp(28px,4vw,64px);font-weight:400;line-height:1.2}
+h1 span{display:block;font-size:.45em;font-weight:200;font-style:italic}
+.status{font-size:13px;font-weight:300}
+.status b{font-weight:600}
+
+section{margin-top:clamp(40px,8vh,96px)}
+header+section{margin-top:clamp(20px,4vh,40px)}
+h2{font-size:clamp(20px,2vw,32px);font-weight:400;margin-bottom:2vh;text-transform:lowercase}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:12px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--rule)}
+th{font-size:13px;font-weight:600;border-bottom:1px solid var(--ink)}
+tr:last-child td{border-bottom:0}
+#season td:nth-child(2),#season th:nth-child(2){text-align:left}
+#season td.pts{font-weight:700;font-size:19px}
+#season td.team{font-weight:500}
+#season td.mgr{font-style:italic;font-weight:300;font-size:14px}
+
+.cell{display:flex;flex-direction:column;align-items:center;line-height:1.2;gap:2px}
+.cell b{font-weight:300;font-size:17px}
+.cell small{font-size:11px;font-weight:300;color:var(--ink-dim)}
+.cell.top b{font-weight:700}
+.badge{font-size:12px;font-weight:300;font-style:italic;margin-left:4px}
+.note{font-size:13px;font-style:italic;line-height:1.6;margin-top:2vh}
+.err{font-style:italic}
+
+#gws tr.gw{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#gws tr.gw td:first-child{text-align:left}
+.chev{display:inline-block;width:12px;font-weight:300;transition:transform .2s ease}
 tr.open .chev{transform:rotate(90deg)}
-#gws td.detail{padding:12px;text-align:left;white-space:normal;background:var(--bg)}
-.squads{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.squad{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-.squad h3{margin:0 0 4px;font-size:13px;display:flex;justify-content:space-between}
-.squad ul{list-style:none;margin:0;padding:0}
-.squad li{display:flex;gap:6px;font-size:13px;padding:2px 0}
-.squad li .p{width:28px;color:var(--muted);font-size:11px;padding-top:1px}
+@media (hover:hover){#gws tr.gw:hover td{background:rgba(0,0,0,.04)}}
+#gws td.detail{padding:16px 0 24px;text-align:left;white-space:normal}
+.squads{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px 28px}
+.squad h3{font-size:15px;font-weight:600;display:flex;justify-content:space-between;gap:8px;padding-bottom:4px;margin-bottom:4px;border-bottom:1px solid var(--ink)}
+.squad ul{list-style:none}
+.squad li{display:flex;gap:8px;font-size:14px;padding:3px 0}
+.squad li .p{width:30px;flex:none;font-size:11px;font-weight:300;padding-top:2px}
 .squad li .n{flex:1;overflow:hidden;text-overflow:ellipsis}
-.squad li b{font-variant-numeric:tabular-nums}
-.squad li.bench{opacity:.55}
-.squad li.subin .n::after{content:" ↑";color:var(--win)}
-.squad .sep{font-size:11px;color:var(--muted);margin:6px 0 2px;text-transform:uppercase;letter-spacing:.05em}
-.dmsg{color:var(--muted);font-size:13px}
+.squad li b{font-weight:600}
+.squad li.bench{color:var(--ink-dim)}
+.squad li.subin .n::after{content:" ↑";font-weight:300}
+.squad .sep{font-size:12px;font-style:italic;font-weight:300;margin:8px 0 2px}
+.dmsg{font-size:14px;font-style:italic}
+
+@media (max-width:600px){
+  th,td{padding:10px 6px}
+  th{font-size:12px}
+  #season td.mgr,#season th:nth-child(3){display:none} /* manager column hidden on phones */
+  #season td.pts{font-size:17px}
+  .cell b{font-size:15px}
+  .squads{grid-template-columns:1fr 1fr;gap:16px}
+}
+@media (max-width:380px){
+  .squads{grid-template-columns:1fr}
+}

@@ -4,25 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zev League Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
   <header>
-    <h1>Zev league <span>3 / 1 / 0 / 0</span></h1>
-    <p class="sub">Each gameweek from GW7: rank the four teams by FPL Draft points. 1st gets 3, 2nd gets 1, 3rd and 4th get 0. Ties split the points.</p>
+    <h1>zev fantasy premier league</h1>
     <p id="status" class="status">Loading…</p>
   </header>
 
   <section>
-    <h2>Season table</h2>
+    <h2>season table</h2>
     <div class="scroll"><table id="season"></table></div>
   </section>
 
   <section>
-    <h2>Gameweeks</h2>
+    <h2>gameweeks</h2>
     <div class="scroll"><table id="gws"></table></div>
-    <p class="note">Gameweeks marked <em>live</em> count provisionally until every fixture and the bonus points are final.</p>
+    <p class="note">Gameweeks marked live count provisionally until every fixture and the bonus points are final.</p>
   </section>
 </main>
 <script src="app.js"></script>
