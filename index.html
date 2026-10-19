@@ -28,6 +28,43 @@
     <div class="scroll"><table id="gws"></table></div>
     <p class="note">Gameweeks marked live count provisionally until every fixture and the bonus points are final.</p>
   </section>
+
+  <button id="funBtn" class="fun-btn" aria-expanded="false" aria-controls="fun">
+    <span>Fun Stuff</span>
+    <svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true"><path d="M1 9 L8 2 L15 9"/></svg>
+  </button>
+
+  <div id="fun" hidden>
+  <section>
+    <h2>superlatives</h2>
+    <p class="lede">All season, finished gameweeks only.</p>
+    <div id="tiles" class="tiles"></div>
+  </section>
+
+  <section>
+    <h2>every week</h2>
+    <p class="lede">FPL points per gameweek since GW1. Open dots are still live.</p>
+    <div id="legend" class="legend"></div>
+    <div id="chart" class="chart"></div>
+  </section>
+
+  <section>
+    <h2>gameweek <span class="gwpick"><button id="gwBtn" aria-haspopup="listbox" aria-expanded="false"><span id="gwNum">–</span><svg viewBox="0 0 16 10" width="12" height="8" aria-hidden="true"><path d="M1 9 L8 2 L15 9"/></svg></button><ul id="gwList" role="listbox" hidden></ul></span>, up close</h2>
+    <div id="week"><p class="dmsg">Loading players…</p></div>
+  </section>
+
+  <section>
+    <h2>head to head</h2>
+    <p class="lede">How many weeks the row team outscored the column team, and lost to it.</p>
+    <div class="scroll"><table id="h2h"></table></div>
+  </section>
+
+  <section>
+    <h2>if it had started in gw1</h2>
+    <p class="lede">The same 3 / 1 / 0 / 0 scoring, run over the whole season.</p>
+    <div class="scroll"><table id="alt"></table></div>
+  </section>
+  </div>
 </main>
 <script src="app.js"></script>
 </body>

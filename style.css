@@ -37,7 +37,7 @@ tr:last-child td{border-bottom:0}
 .note{font-size:13px;font-style:italic;line-height:1.6;margin-top:2vh}
 .err{font-style:italic}
 
-#gws{table-layout:fixed;min-width:440px} /* equal team columns; scrolls sideways below 440px */
+#gws{table-layout:fixed;min-width:340px} /* equal team columns; scrolls sideways below 340px */
 #gws th{white-space:normal}
 #gws th:first-child{width:96px;text-align:left}
 #gws tr.gw{cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -70,3 +70,95 @@ tr.open .chev{transform:rotate(90deg)}
 @media (max-width:380px){
   .squads{grid-template-columns:1fr}
 }
+
+/* ---- extra panes ---- */
+.lede{font-style:italic;font-size:14px;line-height:1.6;margin:-1vh 0 2.5vh}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:28px 32px}
+.tile{border-top:1px solid var(--ink);padding-top:10px;display:flex;flex-direction:column;gap:4px}
+.tile .k{font-size:13px;font-style:italic;font-weight:300}
+.tile b{font-size:clamp(38px,4vw,56px);font-weight:200;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .who{font-size:14px;line-height:1.4}
+#week .tiles{margin-bottom:4vh}
+#weekt td{font-weight:300}
+#weekt td.team{font-weight:500;text-align:left}
+#weekt th:first-child{text-align:left}
+#weekt small{font-size:12px;color:var(--ink-dim)}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-bottom:1.5vh}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend line,.chart path{stroke:var(--ink);stroke-width:2;fill:none}
+.chart{position:relative}
+.chart svg{display:block;overflow:visible;touch-action:pan-y}
+.chart .grid{stroke:var(--rule)}
+.chart .mark{stroke:var(--ink);stroke-dasharray:2 3}
+.chart .xh{stroke:var(--ink-dim)}
+.chart text{font:300 11px "Josefin Sans",sans-serif;fill:var(--ink)}
+.chart text.it{font-style:italic;font-size:12px}
+.chart text.lbl{font-size:12px;font-weight:500}
+.chart circle{fill:var(--ink)}
+.chart circle.open{fill:var(--paper);stroke:var(--ink);stroke-width:1.5}
+.tip{position:absolute;pointer-events:none;background:var(--paper);border:1px solid var(--ink);padding:8px 10px;font-size:13px;min-width:160px;display:flex;flex-direction:column;gap:2px}
+.tip div{display:flex;justify-content:space-between;gap:14px;font-weight:300}
+
+#h2h{table-layout:fixed;min-width:340px}
+#h2h th{white-space:normal}
+#h2h tr th:first-child{text-align:left;width:110px}
+#h2h tr+tr th{font-weight:500;border-bottom:1px solid var(--rule)}
+#h2h td{background:rgba(0,0,0,calc(var(--f,0)*.7));border-bottom:2px solid var(--paper)}
+#h2h td.dark{color:var(--paper);font-weight:600}
+#h2h td.self{color:var(--ink-dim)}
+#alt td:nth-child(2),#alt th:nth-child(2){text-align:left}
+#alt td.team{font-weight:500}
+#alt td.pts{font-weight:700;font-size:19px}
+
+@media (max-width:600px){
+  #h2h tr th:first-child{width:84px}
+  .tiles{grid-template-columns:1fr 1fr;gap:22px 18px}
+  .tile .who{font-size:13px}
+}
+.tip[hidden]{display:none}
+
+/* ---- fun stuff toggle ---- */
+.fun-btn{display:flex;align-items:center;gap:10px;margin:clamp(40px,8vh,96px) auto 0;background:none;border:0;padding:8px 4px;cursor:pointer;
+  font:400 clamp(20px,2vw,32px)/1.2 "Josefin Sans",sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.fun-btn svg{fill:none;stroke:var(--ink);stroke-width:1.5;overflow:visible;transition:transform .35s ease}
+.fun-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.fun-btn:focus-visible{outline:1px solid var(--ink);outline-offset:4px}
+#fun{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+#fun.shown{opacity:1;transform:none}
+
+/* ---- gameweek dropdown ---- */
+.gwpick{position:relative;display:inline-block}
+#gwBtn{font:inherit;color:inherit;background:none;border:0;padding:0 2px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent}
+#gwBtn svg{fill:none;stroke:var(--ink);stroke-width:1.5;overflow:visible;transition:transform .25s ease}
+#gwBtn[aria-expanded="true"] svg{transform:rotate(180deg)}
+#gwBtn:focus-visible,#gwList button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+#gwList{position:absolute;z-index:10;top:calc(100% - 4px);left:50%;transform:translateX(-50%);min-width:150px;max-height:min(320px,50vh);
+  overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain;list-style:none;padding:32px 20px;
+  background:rgba(240,229,211,.6);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  /* feather all four edges: two fades intersected */
+  --fe:32px;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent),linear-gradient(to right,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to bottom,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent),linear-gradient(to right,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent);
+  mask-composite:intersect}
+#gwList li{animation:gwdrop .6s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i) * 70ms)}
+#gwList.closing li{animation:gwrise .4s cubic-bezier(.5,0,.8,.3) both;animation-delay:calc(var(--i) * 45ms)} /* 400 + 8*45 = 760ms, CLOSE_MS in app.js */
+@keyframes gwdrop{from{opacity:0;transform:translateY(-18px)}}
+@keyframes gwrise{to{opacity:0;transform:translateY(-18px)}}
+@media (prefers-reduced-motion:reduce){#gwList li{animation:none}}
+#gwList::-webkit-scrollbar{display:none}
+#gwList button{display:block;width:100%;font:400 18px/1.2 "Josefin Sans",sans-serif;color:var(--ink);background:none;border:0;padding:8px 18px;cursor:pointer;text-align:center}
+#gwList button i{font-size:13px;font-weight:300}
+#gwList [aria-selected="true"] button{font-weight:700}
+@media (hover:hover){#gwList button:hover{background:rgba(0,0,0,.06)}}
+#fun>section:first-child{margin-top:clamp(16px,3vh,32px)}
+#gwList{animation:gwfade .45s ease both}
+#gwList.closing{animation:gwfadeout .35s ease .4s both}
+@keyframes gwfade{from{opacity:0}}
+@keyframes gwfadeout{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){#gwList,#gwList.closing,#gwList.closing li{animation:none}}
+/* keep the flip board from reflowing while glyphs change width */
+#week{font-variant-numeric:tabular-nums}
+#weekt{table-layout:fixed;min-width:340px}
+#weekt td{white-space:normal}

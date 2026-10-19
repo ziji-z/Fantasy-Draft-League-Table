@@ -3,7 +3,6 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 const LEAGUE = 64420;
-const FIRST_GW = 7;
 const out = process.argv[2] || 'data.json';
 
 async function get(path) {
@@ -24,7 +23,6 @@ const data = {
     id: e.id, entry: e.entry_id, team: e.entry_name, manager: `${e.player_first_name} ${e.player_last_name}`.trim(),
   })),
   matches: league.matches
-    .filter(m => m.event >= FIRST_GW)
     .map(m => ({
       event: m.event, finished: m.finished, started: m.started,
       a: m.league_entry_1, ap: m.league_entry_1_points,
