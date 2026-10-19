@@ -30,7 +30,7 @@ jobs:
       - name: Fetch scores
         run: node scripts/fetch.mjs _site/data.json
       - name: Assemble site
-        run: cp index.html _site/index.html
+        run: cp index.html style.css app.js _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
