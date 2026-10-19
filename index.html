@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zev League Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Zev league <span>3 / 1 / 0 / 0</span></h1>
+    <p class="sub">Each gameweek from GW7: rank the four teams by FPL Draft points. 1st gets 3, 2nd gets 1, 3rd and 4th get 0. Ties split the points.</p>
+    <p id="status" class="status">Loading…</p>
+  </header>
+
+  <section>
+    <h2>Season table</h2>
+    <div class="scroll"><table id="season"></table></div>
+  </section>
+
+  <section>
+    <h2>Gameweeks</h2>
+    <div class="scroll"><table id="gws"></table></div>
+    <p class="note">Gameweeks marked <em>live</em> count provisionally until every fixture and the bonus points are final.</p>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
