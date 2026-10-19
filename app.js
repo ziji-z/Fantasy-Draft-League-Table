@@ -94,7 +94,7 @@ const POS = { 1: 'GK', 2: 'DEF', 3: 'MID', 4: 'FWD' };
 const base = () => WORKER_URL.replace(/\/$/, '');
 function players() {
   return bootP ||= getJSON(base() + '/bootstrap', 20000).then(b => {
-    const m = {}; b.elements.forEach(e => { m[e.id] = { name: e.web_name, pos: POS[e.element_type] || '' }; }); return m;
+    const m = {}; b.elements.forEach(e => { m[e.id] = { name: e.web_name, pos: POS[e.element_type] || '', code: e.code }; }); return m;
   });
 }
 function split(picksResp) {               // -> who actually played (after auto-subs) and who sat
@@ -106,12 +106,21 @@ function split(picksResp) {               // -> who actually played (after auto-
   return { starters, bench, inn };
 }
 const livePts = live => id => (live.elements[id] && live.elements[id].stats.total_points) || 0;
-function squadHTML(team, picksResp, live, pl, official) {
+// classic (non-draft) FPL prices by player code, in tenths of £m; null if the worker route isn't there
+let pricesP = null;
+const prices = () => pricesP ||= getJSON(base() + '/prices', 20000).catch(() => { pricesP = null; return null; });
+const money = tenths => `£${(tenths / 10).toFixed(1)}m`;
+
+function squadHTML(team, picksResp, live, pl, official, cost) {
   const pts = livePts(live);
   const { starters, bench, inn } = split(picksResp);
+  const price = id => (cost && pl[id] && cost[pl[id].code] != null ? cost[pl[id].code] : null);
+  const worth = cost && picksResp.picks.reduce((a, p) => a + (price(p.element) || 0), 0);
   const li = (p, cls) => { const x = pl[p.element] || { name: '#' + p.element, pos: '' };
-    return `<li class="${cls}"><span class="p">${x.pos}</span><span class="n">${esc(x.name)}</span><b>${pts(p.element)}</b></li>`; };
-  return `<div class="squad"><h3><span>${esc(team.team)}</span><span>${official}</span></h3><ul>` +
+    const c = price(p.element);
+    return `<li class="${cls}"><span class="p">${x.pos}</span><span class="n">${esc(x.name)}</span>${c != null ? `<span class="c">${money(c)}</span>` : ''}<b>${pts(p.element)}</b></li>`; };
+  return `<div class="squad"><h3><span>${esc(team.team)}</span><span>${official}</span></h3>` +
+    (worth ? `<div class="worth">worth ${money(worth)} in classic FPL</div>` : '') + `<ul>` +
     starters.map(p => li(p, inn.has(p.element) ? 'subin' : '')).join('') +
     `</ul><div class="sep">Bench</div><ul>` + bench.map(p => li(p, 'bench')).join('') + `</ul></div>`;
 }
@@ -126,9 +135,9 @@ document.getElementById('gws').addEventListener('click', async e => {
   const cell = dr.firstElementChild;
   if (!WORKER_URL) { cell.innerHTML = '<span class="dmsg">Lineups need the Cloudflare Worker (set WORKER_URL in app.js).</span>'; return; }
   try {
-    const [pl, live, ...picks] = await Promise.all([players(), cached(`${base()}/live/${ev}`, 20000),
+    const [pl, cost, live, ...picks] = await Promise.all([players(), prices(), cached(`${base()}/live/${ev}`, 20000),
       ...state.teams.map(t => cached(`${base()}/picks/${t.entry}/${ev}`, 20000))]);
-    cell.innerHTML = '<div class="squads">' + state.teams.map((t, i) => squadHTML(t, picks[i], live, pl, g.scores[i])).join('') + '</div>';
+    cell.innerHTML = '<div class="squads">' + state.teams.map((t, i) => squadHTML(t, picks[i], live, pl, g.scores[i], cost)).join('') + '</div>';
   } catch (err) { cell.innerHTML = '<span class="dmsg">Could not load lineups right now.</span>'; }
 });
 

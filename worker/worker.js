@@ -1,6 +1,8 @@
-// Cloudflare Worker: tiny CORS proxy for the few FPL Draft endpoints this site needs.
+// Cloudflare Worker: tiny CORS proxy for the few FPL Draft endpoints this site needs,
+// plus /prices: classic-FPL prices keyed by player code (the full classic bootstrap is ~1.8MB, so slim it here).
 // Deploy: dash.cloudflare.com -> Workers & Pages -> your worker -> Edit code -> paste -> Deploy.
 const BASE = 'https://draft.premierleague.com';
+const PRICE_TTL = 3600;   // classic prices: reuse a fetch for up to 1 hour
 const ENTRIES = new Set(['339281', '339357', '339604', '348889']);   // draft entry ids in the league
 const ROUTES = [
   [/^\/league$/, () => '/api/league/64420/details', 60],
@@ -14,6 +16,15 @@ export default {
     const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
     const path = new URL(request.url).pathname;
+    if (path === '/prices') {
+      const r = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/', { cf: { cacheTtl: PRICE_TTL, cacheEverything: true }, headers: { 'User-Agent': 'zev-fpl-tracker' } });
+      if (!r.ok) return new Response('Upstream error', { status: 502, headers: cors });
+      const prices = {};
+      (await r.json()).elements.forEach(e => { prices[e.code] = e.now_cost; });   // now_cost is in tenths of £m
+      return new Response(JSON.stringify(prices), {
+        headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${PRICE_TTL}` },
+      });
+    }
     for (const [re, build, ttl] of ROUTES) {
       const m = path.match(re);
       if (!m) continue;

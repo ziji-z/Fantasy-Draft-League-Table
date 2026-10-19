@@ -133,32 +133,37 @@ tr.open .chev{transform:rotate(90deg)}
 #gwBtn svg{fill:none;stroke:var(--ink);stroke-width:1.5;overflow:visible;transition:transform .25s ease}
 #gwBtn[aria-expanded="true"] svg{transform:rotate(180deg)}
 #gwBtn:focus-visible,#gwList button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
-#gwList{position:absolute;z-index:10;top:calc(100% - 4px);left:50%;transform:translateX(-50%);min-width:150px;max-height:min(320px,50vh);
-  overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain;list-style:none;padding:32px 20px;
-  background:rgba(240,229,211,.6);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-  /* feather all four edges: two fades intersected */
-  --fe:32px;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent),linear-gradient(to right,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent);
-  -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to bottom,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent),linear-gradient(to right,transparent,#000 var(--fe),#000 calc(100% - var(--fe)),transparent);
-  mask-composite:intersect}
-#gwList li{animation:gwdrop .6s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i) * 70ms)}
-#gwList.closing li{animation:gwrise .4s cubic-bezier(.5,0,.8,.3) both;animation-delay:calc(var(--i) * 45ms)} /* 400 + 8*45 = 760ms, CLOSE_MS in app.js */
+#gwList{position:absolute;z-index:10;top:calc(100% - 4px);left:50%;transform:translateX(-50%);min-width:130px;max-height:min(340px,52vh);
+  overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain;list-style:none;padding:6px 0}
+/* each number radiates its own blur: a small frosted patch hugging the number, feathered round by a radial
+   mask, plus a paper-colored glow on the glyphs. Animate the button (not the li or list): an ancestor with
+   opacity/mask/filter becomes a "backdrop root" and the blur would vanish until the animation ends. */
+#gwList li{display:flex;justify-content:center}
+#gwList button{width:auto;padding:16px 26px;margin:-5px 0;
+  background:radial-gradient(closest-side,rgba(240,229,211,.75),rgba(240,229,211,0));
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  -webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent);mask-image:radial-gradient(closest-side,#000 55%,transparent);
+  text-shadow:0 0 6px var(--paper),0 0 14px var(--paper)}
+#gwList button{animation:gwdrop .6s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i) * 70ms)}
+#gwList.closing button{animation:gwrise .4s cubic-bezier(.5,0,.8,.3) both;animation-delay:calc(var(--i) * 45ms)} /* 400 + 8*45 = 760ms, CLOSE_MS in app.js */
 @keyframes gwdrop{from{opacity:0;transform:translateY(-18px)}}
 @keyframes gwrise{to{opacity:0;transform:translateY(-18px)}}
-@media (prefers-reduced-motion:reduce){#gwList li{animation:none}}
+@media (prefers-reduced-motion:reduce){#gwList button{animation:none}}
 #gwList::-webkit-scrollbar{display:none}
-#gwList button{display:block;width:100%;font:400 18px/1.2 "Josefin Sans",sans-serif;color:var(--ink);background:none;border:0;padding:8px 18px;cursor:pointer;text-align:center}
+#gwList button{display:block;font:400 18px/1.2 "Josefin Sans",sans-serif;color:var(--ink);border:0;cursor:pointer;text-align:center;transition:font-weight .15s}
 #gwList button i{font-size:13px;font-weight:300}
 #gwList [aria-selected="true"] button{font-weight:700}
-@media (hover:hover){#gwList button:hover{background:rgba(0,0,0,.06)}}
+/* hover: a dark radial layer that fades in (gradients can't transition, opacity can) */
+#gwList button{position:relative}
+#gwList button::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,0,0,.1),rgba(0,0,0,0));opacity:0;transition:opacity .35s ease}
+@media (hover:hover){#gwList button:hover::before{opacity:1}}
 #fun>section:first-child{margin-top:clamp(16px,3vh,32px)}
-#gwList{animation:gwfade .45s ease both}
-#gwList.closing{animation:gwfadeout .35s ease .4s both}
-@keyframes gwfade{from{opacity:0}}
-@keyframes gwfadeout{to{opacity:0}}
-@media (prefers-reduced-motion:reduce){#gwList,#gwList.closing,#gwList.closing li{animation:none}}
+@media (prefers-reduced-motion:reduce){#gwList.closing button{animation:none}}
 /* keep the flip board from reflowing while glyphs change width */
 #week{font-variant-numeric:tabular-nums}
 #weekt{table-layout:fixed;min-width:340px}
 #weekt td{white-space:normal}
+/* classic-FPL prices in the lineups */
+.squad .worth{font-size:12px;font-style:italic;font-weight:300;margin:-2px 0 4px}
+.squad li .c{font-size:11px;font-weight:300;color:var(--ink-dim);padding-top:2px;font-variant-numeric:tabular-nums}
