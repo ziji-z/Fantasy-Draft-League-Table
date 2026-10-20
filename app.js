@@ -185,7 +185,7 @@ async function renderMisses(teams) {
       sorter.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === mode));
       const list = mode === 'miss' ? [...rows].sort((a, b) => b.miss - a.miss || a.c.index - b.c.index) : rows;
       el.innerHTML = '<tr><th>Pick</th><th>Team</th><th>Took</th><th>Could have had</th><th>Missed</th></tr>' + list.map((r, k) =>
-      `<tr class="in" style="--i:${Math.min(k, 10)}"><td>${r.c.round}.${r.c.pick}</td><td class="team">${esc(byEntry[r.c.entry] ? byEntry[r.c.entry].team : r.c.entry_name)}</td>` +
+      `<tr class="in" style="--i:${Math.min(k, 8)}"><td>${r.c.round}.${r.c.pick}</td><td class="team">${esc(byEntry[r.c.entry] ? byEntry[r.c.entry].team : r.c.entry_name)}</td>` +
       `<td>${esc(r.me.name)} <small>${r.me.total}</small></td>` +
       (r.miss ? `<td>${esc(r.alt.name)} <small>${r.alt.total}</small></td><td class="${worst.includes(r.c.index) ? 'big' : ''}">${r.miss}</td>`
               : `<td class="nailed" colspan="2">best available</td>`) + '</tr>').join('');
@@ -450,7 +450,8 @@ function revealToggle(btn, panel, onOpen) {
 
 // like revealToggle, but the panel's height animates open and shut, so whatever sits below it
 // (here, the button itself) slides down and back up instead of jumping
-function slideToggle(btn, panel, ms = 500) {   // ms = the .slide height transition in style.css
+// ms / closeMs match the .slide transitions in style.css (closing waits for the rows to rise out first)
+function slideToggle(btn, panel, ms = 500, closeMs = 780) {
   let t;
   btn.addEventListener('click', () => {
     const open = btn.getAttribute('aria-expanded') !== 'true';
@@ -463,8 +464,12 @@ function slideToggle(btn, panel, ms = 500) {   // ms = the .slide height transit
     panel.style.height = from + 'px';
     panel.getBoundingClientRect();              // commit the start height before transitioning
     panel.classList.toggle('shown', open);
+    panel.classList.toggle('closing', !open);
     panel.style.height = to + 'px';
-    t = setTimeout(() => { if (open) panel.style.height = ''; else panel.hidden = true; }, ms);
+    t = setTimeout(() => {
+      if (open) panel.style.height = '';
+      else { panel.hidden = true; panel.classList.remove('closing'); }
+    }, open ? ms : closeMs);
   });
 }
 
